@@ -75,3 +75,15 @@ class Comment(BaseModel):
         db_table = 'comments'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+
+
+class Like(models.Model):
+    likes = models.ManyToManyField(User, blank=True, related_name='likes')
+    articles = models.ManyToManyField("webapp:Article", on_delete=models.CASCADE, related_name="likes")
+    alreadyLiked = models.BooleanField(default=False)
+
+    @property
+    def total_likes(self):
+        return self.likes.count()
+
+
