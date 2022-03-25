@@ -25,18 +25,8 @@
     <h1>{{ article.author }}</h1>
     <h3>{{ article.title }}</h3>
     <p>{{ article.content }}</p>
-    {% if user.is_authenticated %}
-  <form action="{% url 'webapp:article_like' object.id %}" method="POST">
-	{% csrf_token %}
 
-	{% if post_is_liked %}
-	<button type="submit" name="article_id" value="{{object.id}}" class="btn btn-info">Unlike</button>
-	{% else %}
-	<button type="submit" name="article_id" value="{{object.id}}" class="btn btn-info">Like</button>
-	{% endif %}
-  </form>
-    {% endif %}
-    <strong class="text-secondary">{{ number_of_likes }} Like{{ number_of_likes|pluralize }}</strong>
+    {% include "partial/like_article.html" %}
     <br>
     <h3>Комментарии</h3>
     {% for comment in comments %}
@@ -58,3 +48,4 @@
         {{ tag.name }}{% if not forloop.last %}, {% else %}. {% endif %}
     {% endfor %}
 {% endblock %}
+

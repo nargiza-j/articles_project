@@ -1,10 +1,13 @@
+from http import HTTPStatus
+
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin
 )
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy, reverse
+from django.views import View
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
 
 from webapp.forms import ArticleForm, ArticleDeleteForm
@@ -41,22 +44,7 @@ class ArticleView(DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comments.order_by("-created_at")
         context['comments'] = comments
-        likes_connected = get_object_or_404(Article, id=self.kwargs['pk'])
-        liked = False
-        if likes_connected.likes.filter(id=self.request.user.id).exists():
-            liked = True
-        context['number_of_likes'] = likes_connected.number_of_likes()
-        context['post_is_liked'] = liked
         return context
-
-
-def article_like(request, pk):
-    post = get_object_or_404(Article, id=request.POST.get('article_id'))
-    if post.likes.filter(id=request.user.id).exists():
-        post.likes.remove(request.user)
-    else:
-        post.likes.add(request.user)
-    return HttpResponseRedirect(reverse('webapp:article_view', args=[str(pk)]))
 
 
 class ArticleUpdateView(PermissionRequiredMixin, UpdateView):
@@ -80,3 +68,32 @@ class ArticleDeleteView(PermissionRequiredMixin, DeleteView):
         if self.request.method == "POST":
             kwargs['instance'] = self.object
         return kwargs
+
+
+class ArticleLikeView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        article = get_object_or_404(Article, pk=kwargs.get("pk"))
+
+        if request.user in article.likes.all():
+            return JsonResponse(
+                {"erorr": "Лайк уже поставлен"},
+                status=HTTPStatus.FORBIDDEN,
+            )
+        article.likes.add(request.user)
+        return JsonResponse(
+            {"likes_count": article.likes.count()}
+        )
+
+
+class ArticleUnLikeView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        article = get_object_or_404(Article, pk=kwargs.get("pk"))
+        if not article.likes.filter(id=request.user.id).exists():
+            return JsonResponse(
+                {"error": "Нужно сначала лайкнуть"},
+                status=HTTPStatus.FORBIDDEN
+            )
+        article.likes.remove(request.user)
+        return JsonResponse(
+            {"likes_count": article.likes.count()}
+        )

@@ -31,9 +31,6 @@ class Article(BaseModel):
     )
     likes = models.ManyToManyField(User, related_name='article_like')
 
-    def number_of_likes(self):
-        return self.likes.count()
-
     def get_absolute_url(self):
         return reverse('webapp:article_view', kwargs={'pk': self.pk})
 
@@ -74,6 +71,7 @@ class Comment(BaseModel):
                                 related_name="comments",
                                 verbose_name="Статья",
                                 )
+    likes = models.ManyToManyField(User, related_name='comment_like')
 
     class Meta:
         db_table = 'comments'
