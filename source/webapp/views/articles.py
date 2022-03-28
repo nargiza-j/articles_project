@@ -10,7 +10,7 @@ from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
 
-from webapp.forms import ArticleForm, ArticleDeleteForm
+from source.webapp.forms import ArticleForm, ArticleDeleteForm
 from webapp.models import Article
 from webapp.views.base import SearchView
 
